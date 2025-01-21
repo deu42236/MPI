@@ -1,3 +1,9 @@
+import json #načítání a ukladání do jsónu
+import time #pojmenovávaní souboru
+import os #na hledání nejnovějšího ledgeru (jsón)
+"""
+https://streamable.com/8mek3u?t=45
+"""
 #bonus za založení účtu:
 bonus = 500 
 class Account:
@@ -38,7 +44,7 @@ class User:
         if account_type == "classic":
             new_account = ClassicAccount(new_acc_number, self.uid, 0)
         elif account_type == "savings":
-            new_account = SavingsAccount(new_acc_number, self.uid, 0, 0.01) # Example APY
+            new_account = SavingsAccount(new_acc_number, self.uid, 0, 0.01) # random APY (Annual percentage yield), třeba 0.01, tedy 1%
         else:
             return "Invalid account type"
         
@@ -62,12 +68,12 @@ class Bank:
         self.next_account_number += 1
         return acc_num
 
-    def create_account(self, user, account_type): # Bank creating account for user
+    def create_account(self, user, account_type):
         new_acc_number = self.generate_account_number()
         if account_type == "classic":
             new_account = ClassicAccount(new_acc_number, user.uid, 0)
         elif account_type == "savings":
-            new_account = SavingsAccount(new_acc_number, user.uid, 0, 0.01) # Example APY
+            new_account = SavingsAccount(new_acc_number, user.uid, 0, 0.01) # random APY (Annual percentage yield), třeba 0.01, tedy 1%Y
         else:
             return "Invalid account type"
         self.all_accounts[new_acc_number] = new_account
@@ -90,26 +96,67 @@ class Bank:
       else:
         return False
 
+    def save_accounts_to_file(self, filename=time.strftime("%YY%mm%dd-%hh%mm"+".json")):
+    #by default to pojmenuje podle aktualniho casu, pokud neni definovano jinak (je to prostě nepovinej argument)
+    #(je to hnusný ale nevim jak to jinak udělat :D)
+        with open(filename, 'w') as file:
+            json.dump(self.all_accounts, file, default=lambda o: o.__dict__, indent=4) #zapíše output self.all_accounts (bank.all_accounts) do souboru, indent 4 je jen pro přehlednost 
+            
+    def load_accounts_from_file(self, filename):
+        with open(filename, 'r') as file:
+            accounts_data = json.load(file)
+            for acc_num, acc_data in accounts_data.items():
+                if 'apy' in acc_data:
+                    account = SavingsAccount(acc_data['acc_number'], acc_data['uid'], acc_data['balance'], acc_data['apy'])
+                else:
+                    account = ClassicAccount(acc_data['acc_number'], acc_data['uid'], acc_data['balance'] - bonus)
+                self.all_accounts[acc_num] = account
+
+
+    def find_latest_json_file(self, directory):
+        json_files = []
+        # Prochází všechny soubory a podadresáře v daném adresáři
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.json') and file.startswith('20'): #pokud to je json a začíná to 20 (tedy rok) a je json
+                    json_files.append(os.path.join(root, file)) #prida to do seznamu
+        json_files.sort()
+        if json_files == []:
+            print("No JSON files found.")
+            return None
+        else:
+            print(json_files)
+            return json_files[-1] if json_files else None #vrátí poslední - nejnovější - z listu
+
+
+
 
 ##### TEST HERE
 bank = Bank()
 user1 = User("Alice", "A123", "heslo")
 user2 = User("Bob", "B456", "hovnoKleslo")
-
 classic_acc1 = user1.create_account("classic", bank)
 savings_acc1 = user1.create_account("savings", bank)
 classic_acc2 = bank.create_account(user2, "classic")
 
-print(f"Classic account 1 ({user1.name}) number: {classic_acc1.acc_number}")
-print(f"Savings account 1 ({user1.name}) number: {savings_acc1.acc_number}")
-print(f"Classic account 2 ({user2.name}) number: {classic_acc2.acc_number}")
+# print(f"Classic account 1 ({user1.name}) number: {classic_acc1.acc_number}")
+# print(f"Savings account 1 ({user1.name}) number: {savings_acc1.acc_number}")
+# print(f"Classic account 2 ({user2.name}) number: {classic_acc2.acc_number}")
 
-bank.transfer(classic_acc1.acc_number, savings_acc1.acc_number, 50)
-print(f"Classic account 1 balance: {bank.all_accounts[classic_acc1.acc_number].get_balance()}")
-print(f"Savings account 1 balance: {bank.all_accounts[savings_acc1.acc_number].get_balance()}")
+# bank.transfer(classic_acc1.acc_number, savings_acc1.acc_number, 50)
+# print(f"Classic account 1 balance: {bank.all_accounts[classic_acc1.acc_number].get_balance()}")
+# print(f"Savings account 1 balance: {bank.all_accounts[savings_acc1.acc_number].get_balance()}")
 
-print(user1.get_balance(classic_acc1.acc_number))
+# print(user1.get_balance(classic_acc1.acc_number))
 
+bank.save_accounts_to_file('accounts.json')
 bank.cancel_account(user1, classic_acc1.acc_number)
-print(user1.accounts)
-print(bank.all_accounts)
+# print(user1.accounts)
+# print(bank.all_accounts)
+bank.save_accounts_to_file()
+
+
+
+directory = '.'  # Aktuální adresář
+latest_json_file = bank.find_latest_json_file(directory)
+print("Nejnovější JSON soubor:", latest_json_file)
