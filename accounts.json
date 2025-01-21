@@ -1,18 +1,32 @@
 {
-    "000002": {
-        "acc_number": "000002",
-        "uid": "A123",
-        "balance": 0,
-        "apy": 0.01
+    "000004": {
+        "acc_number": "000004",
+        "uid": "C789",
+        "balance": 14000
+    },
+    "000007": {
+        "acc_number": "000007",
+        "uid": "256",
+        "balance": 2000
+    },
+    "000006": {
+        "acc_number": "000006",
+        "uid": "5",
+        "balance": 2500
     },
     "000003": {
         "acc_number": "000003",
-        "uid": "B456",
-        "balance": 500
+        "uid": "1",
+        "balance": 15000
     },
-    "000004": {
-        "acc_number": "000004",
-        "uid": "A123",
-        "balance": 500
+    "000005": {
+        "acc_number": "000005",
+        "uid": "2",
+        "balance": 3000
+    },
+    "000002": {
+        "acc_number": "000002",
+        "uid": "4",
+        "balance": 15000
     }
 }
