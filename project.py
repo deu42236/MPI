@@ -137,37 +137,35 @@ class Bank:
             return json_files[0] if json_files else None #vrátí první - nejnovější - z listu
 
 # Příklad použití
-bonus = 500
+bonus = 0
 bank = Bank()
 
-# Načtení uživatelů ze souboru při spuštění programu
-loaded_users = bank.load_accounts_from_file('accounts.json')
+
 while True:
+    # Načtení uživatelů ze souboru při spuštění programu
+    loaded_users = bank.load_accounts_from_file('accounts.json')
+
+
+
     print("1. Nový účet\n2. Smazat účet\n3. Převod mezi účty")
     choice = input("Zadejte číslo: ")
     if choice == "1":
-        if input("Nový uživatel? A/N: ") == "A":
-            new_user = User(input("UID: "))
-            new_account = new_user.create_account("classic", bank)
-            bank.add_user_and_save(new_user)
-        else:
-            uid = input("Zadejte UID existujícího uživatele: ")
-            if uid in loaded_users:
-                new_account = loaded_users[uid].create_account(input("Typ účtu: "), bank)
-                bank.add_user_and_save(loaded_users[uid])
-            else:
-                print("Uživatel s tímto UID neexistuje.")
+        new_user = User(input("UID: "))
+        new_account = new_user.create_account("classic", bank)
+        bank.add_user_and_save(new_user)
     elif choice == "2":
         uid = input("Zadejte UID uživatele: ")
         if uid in loaded_users:
             if bank.cancel_account(loaded_users[uid], input("Číslo účtu k zrušení: ")):
                 print("Účet byl zrušen.")
+                bank.save_accounts_to_file(loaded_users.values())
             else:
                 print("Účet nebyl zrušen.")
         else:
             print("Uživatel s tímto UID neexistuje.")
     elif choice == "3":
-        if bank.transfer(input("Odesílatel: "), input("Příjemce: "), int(input("Částka: "))):
+        if bank.transfer(input("Odesílatel(acc_num): "), input("Příjemce(acc_num): "), int(input("Částka: "))):
             print("Převod proběhl úspěšně.")
+            bank.save_accounts_to_file(loaded_users.values())
         else:
             print("Převod se nezdařil.")
